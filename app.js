@@ -41,12 +41,20 @@ const WHATSAPP_NUMBER = "522721498675"; // 52 (México) + 2721498675, tomado de 
    administración (VelvetFrut — Control del Negocio), para que los
    pedidos lleguen a la misma base de datos y aparezcan solos allá. */
 const firebaseConfig = {
-  apiKey: "PON_AQUI_TU_API_KEY",
-  authDomain: "PON_AQUI_TU_PROYECTO.firebaseapp.com",
-  projectId: "PON_AQUI_TU_PROYECTO",
-  storageBucket: "PON_AQUI_TU_PROYECTO.firebasestorage.app",
-  messagingSenderId: "PON_AQUI_TU_MESSAGING_ID",
-  appId: "PON_AQUI_TU_APP_ID",
+
+  apiKey: "AIzaSyA_sZgyKDalaLFK0mTOo7Xd4lTbg17V6WY",
+
+  authDomain: "velvet-frut.firebaseapp.com",
+
+  projectId: "velvet-frut",
+
+  storageBucket: "velvet-frut.firebasestorage.app",
+
+  messagingSenderId: "795859668940",
+
+  appId: "1:795859668940:web:d176c6a5503ccc47315769"
+
+
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
