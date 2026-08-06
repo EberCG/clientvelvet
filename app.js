@@ -41,20 +41,12 @@ const WHATSAPP_NUMBER = "522721498675"; // 52 (México) + 2721498675, tomado de 
    administración (VelvetFrut — Control del Negocio), para que los
    pedidos lleguen a la misma base de datos y aparezcan solos allá. */
 const firebaseConfig = {
-
-  apiKey: "AIzaSyA_sZgyKDalaLFK0mTOo7Xd4lTbg17V6WY",
-
-  authDomain: "velvet-frut.firebaseapp.com",
-
-  projectId: "velvet-frut",
-
-  storageBucket: "velvet-frut.firebasestorage.app",
-
-  messagingSenderId: "795859668940",
-
-  appId: "1:795859668940:web:d176c6a5503ccc47315769"
-
-
+  apiKey: "PON_AQUI_TU_API_KEY",
+  authDomain: "PON_AQUI_TU_PROYECTO.firebaseapp.com",
+  projectId: "PON_AQUI_TU_PROYECTO",
+  storageBucket: "PON_AQUI_TU_PROYECTO.firebasestorage.app",
+  messagingSenderId: "PON_AQUI_TU_MESSAGING_ID",
+  appId: "PON_AQUI_TU_APP_ID",
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -112,38 +104,31 @@ function renderFechas() {
 
 /* ============ MENÚ ============ */
 function renderMenu() {
-  const wrap = document.getElementById("menuList");
+  const wrap = document.getElementById("menuGrid");
   wrap.innerHTML = "";
   MENU.forEach((m) => {
-    const card = document.createElement("div");
-    card.className = "menu-card";
-    card.innerHTML = `
-      <div class="menu-card__photo" data-photo-wrap>
-        <span>📷 Agrega la foto en <b>${m.img}</b></span>
-      </div>
-      <div class="menu-card__body">
-        <div class="menu-card__top">
-          <span class="menu-card__name">${m.nombre}</span>
-          <span class="menu-card__price">$${m.precio}</span>
-        </div>
-        <p class="menu-card__desc">${m.descripcion}</p>
-        <button type="button" class="menu-card__btn" data-key="${m.key}">+ Personalizar y añadir</button>
-      </div>`;
+    const cell = document.createElement("button");
+    cell.type = "button";
+    cell.className = "menu-grid__item";
+    cell.dataset.key = m.key;
+    cell.innerHTML = `
+      <span class="menu-grid__photo" data-photo-wrap>
+        <span class="menu-grid__photo-fallback">📷</span>
+      </span>
+      <span class="menu-grid__name">${m.nombre}</span>
+      <span class="menu-grid__price">$${m.precio}</span>`;
 
-    // intenta cargar la foto real; si no existe, deja el aviso de arriba
+    // intenta cargar la foto real; si no existe, deja el ícono de cámara
     const img = new Image();
     img.onload = () => {
-      const ph = card.querySelector("[data-photo-wrap]");
+      const ph = cell.querySelector("[data-photo-wrap]");
       ph.style.backgroundImage = `url("${m.img}")`;
       ph.innerHTML = "";
     };
     img.src = m.img;
 
-    wrap.appendChild(card);
-  });
-
-  wrap.querySelectorAll("[data-key]").forEach((btn) => {
-    btn.addEventListener("click", () => abrirToppingModal(btn.dataset.key));
+    cell.addEventListener("click", () => abrirToppingModal(m.key));
+    wrap.appendChild(cell);
   });
 }
 
@@ -156,7 +141,8 @@ const modalTopping = document.getElementById("modalTopping");
 function abrirToppingModal(key) {
   const m = MENU.find((x) => x.key === key);
   seleccionActual = { key, gratis: null, pago: [] };
-  document.getElementById("toppingTitle").textContent = `${m.nombre} — elige tus toppings`;
+  document.getElementById("toppingTitle").textContent = `${m.nombre} · $${m.precio}`;
+  document.getElementById("toppingDesc").textContent = m.descripcion;
   renderToppingChips();
   modalTopping.hidden = false;
 }
