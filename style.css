@@ -1,14 +1,14 @@
 :root {
-  --cream: #FBF3EA;
-  --cream-2: #F3E6D6;
-  --card: #FFFDFA;
-  --ink: #2B211D;
-  --ink-soft: #6B5D54;
-  --border: #E7D9C7;
+  --cream: #FFFFFF;
+  --cream-2: #F7F1F1;
+  --card: #FFFFFF;
+  --ink: #241417;
+  --ink-soft: #7A6A6D;
+  --border: #EFE1E3;
 
-  --berry: #8E2A45;
-  --berry-dark: #6F1F35;
-  --berry-tint: #F4E2E6;
+  --berry: #B3122B;
+  --berry-dark: #7E0C1F;
+  --berry-tint: #FBE4E7;
 
   --leaf: #4F7942;
   --leaf-tint: #E7EEE2;
@@ -24,7 +24,7 @@
   --radius-lg: 22px;
   --radius-md: 16px;
   --radius-sm: 12px;
-  --shadow: 0 2px 10px rgba(43, 33, 29, 0.07);
+  --shadow: 0 2px 14px rgba(36, 20, 23, 0.08);
 }
 
 * { box-sizing: border-box; }
@@ -122,39 +122,57 @@ button, input, select { font-family: inherit; }
 .field input:focus, .field__select:focus { outline: 2px solid var(--berry); outline-offset: 1px; }
 .field__hint { display: block; font-size: 11.5px; color: var(--ink-soft); margin-top: 5px; font-weight: 500; }
 
-/* ===== MENU CARDS ===== */
-.menu-cards { display: flex; flex-direction: column; gap: 14px; }
-.menu-card {
-  background: var(--card);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  overflow: hidden;
+/* ===== MENU GRID (3 columnas, fotos uniformes) ===== */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
-.menu-card__photo {
+.menu-grid__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.menu-grid__photo {
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-md);
   background: var(--cream-2) center/cover no-repeat;
+  box-shadow: var(--shadow);
+  border: 2px solid var(--card);
+  outline: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--ink-soft);
-  font-size: 12.5px;
+  font-size: 20px;
 }
-.menu-card__body { padding: 14px 16px 16px; }
-.menu-card__top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
-.menu-card__name { font-family: "Fraunces", serif; font-weight: 600; font-size: 17px; color: var(--berry-dark); }
-.menu-card__price { font-weight: 600; color: var(--berry); font-size: 15px; white-space: nowrap; }
-.menu-card__desc { font-size: 13px; color: var(--ink-soft); line-height: 1.45; margin: 6px 0 12px; }
-.menu-card__btn {
-  width: 100%;
-  border: none;
-  background: var(--berry-tint);
-  color: var(--berry-dark);
-  padding: 11px 0;
-  font-size: 14px;
+.menu-grid__item:active .menu-grid__photo { outline-color: var(--berry); }
+.menu-grid__name {
+  font-size: 12px;
   font-weight: 600;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.25;
+  margin-top: 2px;
+}
+.menu-grid__price {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--berry);
+}
+
+.topping-desc {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: -10px 0 16px;
 }
 
 /* ===== PEDIDO ITEMS ===== */
