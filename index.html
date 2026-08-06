@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VelvetFrut — Haz tu pedido</title>
+<meta name="theme-color" content="#8E2A45">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VelvetFrut">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <div class="topbar__brand">
+      <img src="icons/icon-192.png" alt="" class="topbar__logo">
+      <div>
+        <p class="topbar__title">VelvetFrut</p>
+        <p class="topbar__subtitle">Arma tu pedido y lo recibimos al instante</p>
+      </div>
+    </div>
+    <button class="install-btn" id="installBtn" hidden>📲 Instalar</button>
+  </div>
+</header>
+
+<main class="app">
+
+  <!-- ===== PASO 1: DATOS ===== -->
+  <section class="panel">
+    <label class="field">
+      <span class="field__label">Tu nombre</span>
+      <input type="text" id="inputNombre" placeholder="¿Cómo te llamas?" autocomplete="off">
+    </label>
+
+    <label class="field">
+      <span class="field__label">¿Para qué día lo quieres?</span>
+      <select id="inputFecha" class="field__select"></select>
+    </label>
+  </section>
+
+  <!-- ===== PASO 2: MENÚ ===== -->
+  <section class="panel">
+    <p class="section-label">Elige tu producto</p>
+    <div id="menuList" class="menu-cards"></div>
+  </section>
+
+  <!-- ===== PASO 3: MI PEDIDO ===== -->
+  <section class="panel">
+    <p class="section-label" id="pedidoItemsLabel" hidden>Mi pedido (<span id="pedidoItemsCount">0</span>)</p>
+    <div class="pedido-items" id="pedidoItems"></div>
+    <p class="empty-hint" id="pedidoItemsEmpty">Aún no agregas ningún producto. Elige uno arriba para empezar.</p>
+
+    <div class="modal__total" id="totalWrap" hidden>
+      <span>Total</span>
+      <span id="modalTotal">$0.00</span>
+    </div>
+
+    <button class="btn btn--primary btn--enviar" id="btnEnviar">Enviar pedido</button>
+    <p class="field__hint" id="enviarHint" style="text-align:center;margin-top:8px;"></p>
+  </section>
+
+</main>
+
+<!-- ===== CONSTRUCTOR DE TOPPINGS (aparece al elegir un producto) ===== -->
+<div class="modal" id="modalTopping" hidden>
+  <div class="modal__sheet">
+    <div class="modal__handle"></div>
+    <h2 class="modal__title" id="toppingTitle">Personaliza tu pedido</h2>
+    <div id="toppingBuilderGratis"></div>
+    <div id="toppingBuilderPago"></div>
+    <div class="modal__actions">
+      <button class="btn btn--ghost" id="btnCancelarTopping">Cancelar</button>
+      <button class="btn btn--primary" id="btnAddPedidoItem">+ Añadir al pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONFIRMACIÓN ===== -->
+<div class="modal" id="modalOk" hidden>
+  <div class="modal__sheet modal__sheet--center">
+    <p class="modal__ok-emoji">🍓</p>
+    <h2 class="modal__title" style="text-align:center;">¡Tu pedido ya llegó a VelvetFrut!</h2>
+    <p class="field__hint" style="text-align:center;font-size:13.5px;">Te confirmamos por WhatsApp si tienes alguna duda. ¡Gracias por tu pedido!</p>
+    <button class="btn btn--primary" id="btnOkCerrar">Listo</button>
+  </div>
+</div>
+
+<button class="fab fab--whatsapp" id="fabWhatsapp" aria-label="WhatsApp">💬</button>
+
+<script src="https://www.gstatic.com/firebasejs/12.12.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore-compat.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
