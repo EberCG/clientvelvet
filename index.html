@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>VelvetFrut — Haz tu pedido</title>
-<meta name="theme-color" content="#8E2A45">
+<meta name="theme-color" content="#B3122B">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VelvetFrut">
@@ -21,7 +21,7 @@
 <header class="topbar">
   <div class="topbar__inner">
     <div class="topbar__brand">
-      <img src="icon-192.png" alt="" class="topbar__logo">
+      <img src="icons/icon-192.png" alt="" class="topbar__logo">
       <div>
         <p class="topbar__title">VelvetFrut</p>
         <p class="topbar__subtitle">Arma tu pedido y lo recibimos al instante</p>
@@ -49,7 +49,7 @@
   <!-- ===== PASO 2: MENÚ ===== -->
   <section class="panel">
     <p class="section-label">Elige tu producto</p>
-    <div id="menuList" class="menu-cards"></div>
+    <div id="menuGrid" class="menu-grid"></div>
   </section>
 
   <!-- ===== PASO 3: MI PEDIDO ===== -->
@@ -74,6 +74,7 @@
   <div class="modal__sheet">
     <div class="modal__handle"></div>
     <h2 class="modal__title" id="toppingTitle">Personaliza tu pedido</h2>
+    <p class="topping-desc" id="toppingDesc"></p>
     <div id="toppingBuilderGratis"></div>
     <div id="toppingBuilderPago"></div>
     <div class="modal__actions">
