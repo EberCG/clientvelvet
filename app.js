@@ -5,7 +5,7 @@
    tarjeta muestra un aviso en vez de foto rota. */
 const MENU = [
   {
-    key: "frutosRojos", nombre: "Frutos Rojos", precio: 45, dot: "#8E2A45",
+    key: "frutosRojos", nombre: "Frutos Rojos🍓", precio: 45, dot: "#8E2A45",
     descripcion: "Deliciosa combinación de capas con base de galleta crocante, cremoso yogur natural y la frescura de fresas picadas y cerezas. El equilibrio perfecto entre lo crujiente y lo suave.",
     img: "img/frutos-rojos.jpg",
     gratis: ["Miel de abeja", "Jalea de fresa"],
