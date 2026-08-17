@@ -46,6 +46,13 @@
   .install-btn { flex-shrink:0; border:1px solid var(--line); background:var(--paper); color:var(--orange); font-size:12.5px; font-weight:700; padding:8px 12px; border-radius:999px; cursor:pointer; }
   .install-btn[hidden] { display:none; }
   .fab-whatsapp { position:fixed; right:16px; bottom:max(20px, env(safe-area-inset-bottom)); z-index:40; width:56px; height:56px; border-radius:50%; background:#25D366; color:#fff; border:none; font-size:26px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.25); }
+  .add-cart-btn { background:var(--orange); color:#fff; font-weight:700; border-radius:12px; padding:12px; width:100%; transition:opacity .15s ease; }
+  .add-cart-btn:hover { opacity:.92; }
+  .cart-remove { color:var(--muted); }
+  .cart-remove:hover { color:var(--orange); }
+  .qty-btn { width:26px; height:26px; border-radius:999px; border:1px solid var(--line); background:#fff; font-weight:700; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .qty-btn:hover { border-color:var(--orange); color:var(--orange); }
+  #cartList { max-height:280px; overflow-y:auto; }
 </style>
 </head>
 <body>
@@ -74,7 +81,7 @@
       <div class="relative z-10 max-w-xl p-7 sm:p-10 text-white">
         <p class="text-sm uppercase tracking-[.16em] font-bold mb-3" style="color:#d9e6d5;">Tu antojo, a tu manera</p>
         <h2 class="brand-font mb-3" style="font-size:24px;">Un vaso hecho para ti.</h2>
-        <p class="leading-relaxed" style="color:#f5efe4; font-size:16px;">Elige tu favorito, agrega tus toppings y deja listo tu pedido en menos de un minuto.</p>
+        <p class="leading-relaxed" style="color:#f5efe4; font-size:16px;">Elige tus favoritos, agrega los que quieras al carrito y deja listo tu pedido en menos de un minuto.</p>
       </div>
     </section>
 
@@ -110,18 +117,16 @@
       </section>
 
       <aside class="summary-card lg:sticky lg:top-6 rounded-[26px] p-5 sm:p-6" aria-label="Resumen del pedido" style="background:#fffdf8;">
+
+        <!-- Selección actual: lo que se está armando, todavía no está en el carrito -->
         <div class="flex items-center justify-between border-b border-[#eadfce] pb-4 mb-4">
           <div>
-            <p class="text-xs uppercase tracking-[.14em] font-bold" style="color:#db5d32;">Casi listo</p>
-            <h2 class="brand-font" style="color:#24322a; font-size:24px;">Tu pedido</h2>
+            <p class="text-xs uppercase tracking-[.14em] font-bold" style="color:#db5d32;">Tu selección</p>
+            <h2 class="brand-font" style="color:#24322a; font-size:22px;">Antes de agregar</h2>
           </div>
           <i data-lucide="receipt-text" class="w-6 h-6" style="color:#db5d32;" aria-hidden="true"></i>
         </div>
-        <dl class="space-y-4">
-          <div>
-            <dt class="text-xs uppercase tracking-[.1em] font-bold" style="color:#758175;">Cliente</dt>
-            <dd id="summary-customer" class="mt-1 font-semibold">—</dd>
-          </div>
+        <dl class="space-y-3 mb-4">
           <div>
             <dt class="text-xs uppercase tracking-[.1em] font-bold" style="color:#758175;">Producto</dt>
             <dd id="summary-product" class="mt-1 font-semibold">—</dd>
@@ -135,14 +140,32 @@
             <dd id="summary-extras" class="mt-1 text-sm">—</dd>
           </div>
         </dl>
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-sm font-bold" style="color:#758175;">Precio de este bowl</span>
+          <output id="summary-unit-total" class="brand-font text-lg font-bold">$0.00</output>
+        </div>
+        <button id="add-to-cart" type="button" class="add-cart-btn focusable">
+          + Agregar al carrito
+        </button>
+
+        <!-- Carrito -->
+        <div class="mt-6 pt-5 border-t border-[#eadfce]">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="brand-font" style="color:#24322a; font-size:19px;">Tu carrito</h3>
+            <i data-lucide="shopping-cart" class="w-5 h-5" style="color:#db5d32;" aria-hidden="true"></i>
+          </div>
+          <p id="cartEmpty" class="text-sm" style="color:#758175;">Aún no agregas ningún bowl.</p>
+          <ul id="cartList" class="space-y-2" aria-live="polite"></ul>
+        </div>
+
         <div class="mt-5 pt-4 border-t border-[#eadfce] flex justify-between items-end">
           <span class="font-bold" style="color:#24322a; font-size:16px;">Total</span>
-          <output id="summary-total" class="brand-font text-2xl font-bold">$0.00</output>
+          <output id="cart-total" class="brand-font text-2xl font-bold">$0.00</output>
         </div>
-        <button id="submit-order" form="order-form" type="submit"
+        <button id="submit-order" form="order-form" type="submit" disabled
                 class="focusable w-full rounded-xl py-4 mt-5 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                 style="background:#24322a; color:#fff; font-size:16px;">Enviar pedido</button>
-        <p class="text-xs text-center mt-3" style="color:#758175;">Revisa tus elecciones antes de enviar.</p>
+        <p class="text-xs text-center mt-3" style="color:#758175;">Revisa tu carrito antes de enviar.</p>
 
         <div id="success-panel" class="hidden panel-enter mt-5 rounded-2xl p-4 text-center" style="background:#d9e6d5;" aria-live="polite">
           <i data-lucide="circle-check-big" class="w-8 h-8 mx-auto mb-2" style="color:#24322a;" aria-hidden="true"></i>
