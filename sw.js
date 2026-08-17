@@ -1,5 +1,5 @@
-const CACHE_NAME = "velvetfrut-clientes-v1";
-const ASSETS = ["./", "./index.html", "./style.css", "./app.js", "./manifest.json"];
+const CACHE_NAME = "velvetfrut-clientes-v2";
+const ASSETS = ["./", "./index.html", "./app.js", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
