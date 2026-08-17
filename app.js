@@ -32,21 +32,33 @@ const DIA_NOMBRE = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viern
 /* ============ WHATSAPP ============ */
 const WHATSAPP_NUMBER = "522721498675"; // 52 (México) + 2721498675
 
-/* ============ FIREBASE (mismo proyecto que tu panel de administración) ============ */
-const firebaseConfig = {
-  apiKey: "AIzaSyA_sZgyKDalaLFK0mTOo7Xd4lTbg17V6WY",
-  authDomain: "velvet-frut.firebaseapp.com",
-  projectId: "velvet-frut",
-  storageBucket: "velvet-frut.firebasestorage.app",
-  messagingSenderId: "795859668940",
-  appId: "1:795859668940:web:d176c6a5503ccc47315769"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+/* ============ FIREBASE (mismo proyecto que tu panel de administración) ============
+   IMPORTANTE: si Firebase falla por cualquier motivo (sin internet, un
+   bloqueador de anuncios, una cuota agotada, un typo en la config...),
+   NO debe tumbar el resto de la app. Por eso todo el UI (tarjetas, fechas,
+   carrito) se dibuja primero y de forma independiente, y Firebase se
+   inicializa aparte, en su propio try/catch. Antes, un solo error aquí
+   detenía TODO el script y por eso no aparecían ni las tarjetas. */
+let db = null;
+try {
+  const firebaseConfig = {
+    apiKey: "AIzaSyA_sZgyKDalaLFK0mTOo7Xd4lTbg17V6WY",
+    authDomain: "velvet-frut.firebaseapp.com",
+    projectId: "velvet-frut",
+    storageBucket: "velvet-frut.firebasestorage.app",
+    messagingSenderId: "795859668940",
+    appId: "1:795859668940:web:d176c6a5503ccc47315769"
+  };
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+} catch (err) {
+  console.error("Firebase no se pudo inicializar (la app sigue funcionando sin guardado en la nube):", err);
+  db = null;
+}
 
 function saveVenta(data) {
+  if (!db) return Promise.reject(new Error("Firebase no disponible"));
   return db.collection("ventas").doc(data.id).set(data);
 }
 
@@ -68,6 +80,11 @@ function isoOf(d) {
 function parseISO(iso) {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d);
+}
+function fechaCorta(iso) {
+  const d = parseISO(iso);
+  const esHoy = iso === todayISO();
+  return `${DIA_NOMBRE[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}${esHoy ? " (hoy)" : ""}`;
 }
 
 /* ============ FECHAS DE VENTA DISPONIBLES ============ */
@@ -98,6 +115,7 @@ function renderFechas() {
 /* ============ ESTADO ============ */
 let productoActual = MENU[0].key;
 let toppingsSeleccion = {}; // { [key]: { gratis, pago:[] } } — se conserva por producto al cambiar de tarjeta
+let carrito = []; // [{ id, key, nombre, precioBase, pagoPrecio, gratis, pago:[], cantidad }]
 
 MENU.forEach((m) => { toppingsSeleccion[m.key] = { gratis: m.gratis[0], pago: [] }; });
 
@@ -106,6 +124,7 @@ const dateInput = document.getElementById("customer-date");
 const form = document.getElementById("order-form");
 const message = document.getElementById("form-message");
 const submitButton = document.getElementById("submit-order");
+const addToCartButton = document.getElementById("add-to-cart");
 
 /* ============ TARJETAS DE PRODUCTO ============ */
 function renderChoiceCards() {
@@ -183,8 +202,8 @@ function renderToppingPanel() {
   });
 }
 
-/* ============ RESUMEN ============ */
-function calcularTotal() {
+/* ============ SELECCIÓN ACTUAL (antes de agregar al carrito) ============ */
+function precioUnitarioSeleccionActual() {
   const m = MENU.find((x) => x.key === productoActual);
   const sel = toppingsSeleccion[m.key];
   return m.precio + sel.pago.length * m.pagoPrecio;
@@ -193,31 +212,136 @@ function calcularTotal() {
 function updateSummary() {
   const m = MENU.find((x) => x.key === productoActual);
   const sel = toppingsSeleccion[m.key];
-  document.getElementById("summary-customer").textContent = customerInput.value.trim() || "—";
   document.getElementById("summary-product").textContent = `${m.nombre} $${m.precio}`;
   document.getElementById("summary-free").textContent = sel.gratis || "Elige tu topping";
   document.getElementById("summary-extras").textContent = sel.pago.length ? sel.pago.join(", ") : "Sin toppings extra";
-  document.getElementById("summary-total").textContent = money(calcularTotal());
+  document.getElementById("summary-unit-total").textContent = money(precioUnitarioSeleccionActual());
 }
 
-customerInput.addEventListener("input", updateSummary);
-dateInput.addEventListener("change", updateSummary);
+/* ============ CARRITO ============ */
+function mismosToppings(pagoA, pagoB) {
+  const a = [...pagoA].sort().join("|");
+  const b = [...pagoB].sort().join("|");
+  return a === b;
+}
+
+function unitPriceItem(item) {
+  return item.precioBase + item.pago.length * item.pagoPrecio;
+}
+function subtotalItem(item) {
+  return unitPriceItem(item) * item.cantidad;
+}
+function totalCarrito() {
+  return carrito.reduce((sum, item) => sum + subtotalItem(item), 0);
+}
+
+function agregarAlCarrito() {
+  const m = MENU.find((x) => x.key === productoActual);
+  const sel = toppingsSeleccion[m.key];
+
+  if (!sel.gratis) {
+    message.textContent = "Elige tu topping gratis antes de agregar al carrito.";
+    message.className = "mt-4 rounded-xl bg-[#fff0eb] text-[#a53c20] px-4 py-3 text-sm font-semibold";
+    message.classList.remove("hidden");
+    return;
+  }
+  message.classList.add("hidden");
+
+  const existente = carrito.find(
+    (it) => it.key === m.key && it.gratis === sel.gratis && mismosToppings(it.pago, sel.pago)
+  );
+  if (existente) {
+    existente.cantidad += 1;
+  } else {
+    carrito.push({
+      id: uid(),
+      key: m.key,
+      nombre: m.nombre,
+      precioBase: m.precio,
+      pagoPrecio: m.pagoPrecio,
+      gratis: sel.gratis,
+      pago: [...sel.pago],
+      cantidad: 1,
+    });
+  }
+  renderCart();
+}
+
+function cambiarCantidad(id, delta) {
+  const item = carrito.find((it) => it.id === id);
+  if (!item) return;
+  item.cantidad += delta;
+  if (item.cantidad <= 0) carrito = carrito.filter((it) => it.id !== id);
+  renderCart();
+}
+
+function quitarDelCarrito(id) {
+  carrito = carrito.filter((it) => it.id !== id);
+  renderCart();
+}
+
+function renderCart() {
+  const list = document.getElementById("cartList");
+  const empty = document.getElementById("cartEmpty");
+  const totalEl = document.getElementById("cart-total");
+
+  list.innerHTML = "";
+
+  if (carrito.length === 0) {
+    empty.classList.remove("hidden");
+  } else {
+    empty.classList.add("hidden");
+    carrito.forEach((item) => {
+      const row = document.createElement("li");
+      row.className = "cart-row rounded-xl border border-[#eadfce] p-3";
+      const toppingsTxt = [item.gratis, ...item.pago.map((t) => `${t} (+$${item.pagoPrecio})`)].join(", ");
+      row.innerHTML = `
+        <div class="flex justify-between items-start gap-2">
+          <div class="min-w-0">
+            <p class="font-bold truncate" style="color:#24322a;font-size:15px;">${item.nombre}</p>
+            <p class="text-xs mt-0.5" style="color:#758175;">${toppingsTxt}</p>
+          </div>
+          <button type="button" class="cart-remove flex-shrink-0" aria-label="Quitar ${item.nombre}">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="flex justify-between items-center mt-3">
+          <div class="qty-stepper flex items-center gap-3">
+            <button type="button" class="qty-btn" data-action="dec" aria-label="Quitar uno">–</button>
+            <span class="font-bold" style="min-width:1.2em; text-align:center;">${item.cantidad}</span>
+            <button type="button" class="qty-btn" data-action="inc" aria-label="Agregar uno">+</button>
+          </div>
+          <span class="font-bold" style="color:#24322a;">${money(subtotalItem(item))}</span>
+        </div>`;
+      row.querySelector(".cart-remove").addEventListener("click", () => quitarDelCarrito(item.id));
+      row.querySelector('[data-action="inc"]').addEventListener("click", () => cambiarCantidad(item.id, 1));
+      row.querySelector('[data-action="dec"]').addEventListener("click", () => cambiarCantidad(item.id, -1));
+      list.appendChild(row);
+    });
+  }
+
+  totalEl.textContent = money(totalCarrito());
+  submitButton.disabled = carrito.length === 0;
+  if (window.lucide) lucide.createIcons();
+}
 
 /* ============ WHATSAPP AUTOMÁTICO AL ENVIAR ============
    WhatsApp no permite mandar el mensaje solo: abre el chat con el
    pedido ya escrito, falta que la clienta toque "Enviar" ahí dentro. */
-function textoNotificacionPedido(nombre, fechaISO, m, sel, total) {
-  const partes = [sel.gratis];
-  sel.pago.forEach((t) => partes.push(`${t} (+$${m.pagoPrecio})`));
-  const fechaObj = parseISO(fechaISO);
-  const fechaTxt = `${DIA_NOMBRE[fechaObj.getDay()]} ${fechaObj.getDate()}/${fechaObj.getMonth() + 1}`;
-  return `🆕 Pedido nuevo — VelvetFrut\nCliente: ${nombre}\nPara el: ${fechaTxt}\n\n• 1x ${m.nombre}\n   ${partes.join(", ")}\n\nTotal: ${money(total)}`;
+function textoNotificacionPedido(nombre, fechaISO, items, total) {
+  const lineas = items.map((item) => {
+    const toppingsTxt = [item.gratis, ...item.pago.map((t) => `${t} (+$${item.pagoPrecio})`)].join(", ");
+    return `• ${item.cantidad}x ${item.nombre}\n   ${toppingsTxt}`;
+  });
+  return `🆕 Pedido nuevo — VelvetFrut\nCliente: ${nombre}\nPara el: ${fechaCorta(fechaISO)}\n\n${lineas.join("\n\n")}\n\nTotal: ${money(total)}`;
 }
 
 document.getElementById("fabWhatsapp").addEventListener("click", () => {
   const texto = encodeURIComponent("Hola 👋 Tengo una duda sobre el menú de VelvetFrut, ¿me ayudan?");
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${texto}`, "_blank");
 });
+
+addToCartButton.addEventListener("click", agregarAlCarrito);
 
 /* ============ ENVIAR PEDIDO ============ */
 form.addEventListener("submit", (event) => {
@@ -227,47 +351,64 @@ form.addEventListener("submit", (event) => {
 
   const nombre = customerInput.value.trim();
   const fecha = dateInput.value || todayISO();
-  const m = MENU.find((x) => x.key === productoActual);
-  const sel = toppingsSeleccion[m.key];
 
-  if (!nombre || !sel.gratis) {
-    message.textContent = "Escribe tu nombre y elige tu topping gratis para continuar.";
+  if (!nombre) {
+    message.textContent = "Escribe tu nombre para continuar.";
     message.className = "mt-4 rounded-xl bg-[#fff0eb] text-[#a53c20] px-4 py-3 text-sm font-semibold";
-    if (!nombre) customerInput.focus();
+    message.classList.remove("hidden");
+    customerInput.focus();
+    return;
+  }
+  if (carrito.length === 0) {
+    message.textContent = "Agrega al menos un producto al carrito antes de enviar.";
+    message.className = "mt-4 rounded-xl bg-[#fff0eb] text-[#a53c20] px-4 py-3 text-sm font-semibold";
+    message.classList.remove("hidden");
     return;
   }
 
-  const total = calcularTotal();
+  const total = totalCarrito();
   const data = {
     id: uid(),
     nombre,
     fecha,
-    pedido: { items: [{ key: m.key, gratis: sel.gratis, pago: [...sel.pago] }] },
+    pedido: {
+      items: carrito.map((it) => ({
+        key: it.key,
+        nombre: it.nombre,
+        gratis: it.gratis,
+        pago: it.pago,
+        cantidad: it.cantidad,
+        precioUnitario: unitPriceItem(it),
+      })),
+    },
+    total,
     estado: "pendiente",
     origen: "cliente",
-    creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
-    actualizadoEn: firebase.firestore.FieldValue.serverTimestamp(),
+    creadoEn: db ? firebase.firestore.FieldValue.serverTimestamp() : null,
+    actualizadoEn: db ? firebase.firestore.FieldValue.serverTimestamp() : null,
   };
 
   submitButton.disabled = true;
 
   // No esperamos la confirmación del servidor antes de avisar (con poca
-  // señal puede tardar); el pedido ya queda guardado localmente y se
-  // sincroniza solo en cuanto haya conexión.
-  saveVenta(data).catch((err) => console.error("No se pudo enviar el pedido:", err));
+  // señal puede tardar, o Firebase puede no estar disponible); el pedido
+  // se manda por WhatsApp de inmediato y, si hay conexión a Firebase,
+  // también se guarda en la nube.
+  saveVenta(data).catch((err) => console.error("No se pudo guardar el pedido en la nube (igual se envió por WhatsApp):", err));
 
-  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(textoNotificacionPedido(nombre, fecha, m, sel, total))}`, "_blank");
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(textoNotificacionPedido(nombre, fecha, carrito, total))}`, "_blank");
 
   form.reset();
   toppingsSeleccion = {};
   MENU.forEach((x) => { toppingsSeleccion[x.key] = { gratis: x.gratis[0], pago: [] }; });
   productoActual = MENU[0].key;
+  carrito = [];
   renderFechas();
   renderChoiceCards();
   renderToppingPanel();
   updateSummary();
+  renderCart();
 
-  submitButton.disabled = false;
   document.getElementById("success-panel").classList.remove("hidden");
   document.getElementById("success-panel").scrollIntoView({ behavior: "smooth", block: "nearest" });
 });
@@ -289,12 +430,14 @@ installBtn.addEventListener("click", async () => {
 });
 window.addEventListener("appinstalled", () => { installBtn.hidden = true; });
 
-/* ============ INIT ============ */
+/* ============ INIT ============
+   Todo esto corre SIEMPRE, sin importar si Firebase arriba tuvo éxito o no. */
 renderFechas();
 renderChoiceCards();
 renderToppingPanel();
 updateSummary();
-lucide.createIcons();
+renderCart();
+if (window.lucide) lucide.createIcons();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
