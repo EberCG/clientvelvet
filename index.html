@@ -1,100 +1,161 @@
-<!DOCTYPE html>
-<html lang="es">
+<!doctype html>
+<html lang="es-MX">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>VelvetFrut — Haz tu pedido✨</title>
-<meta name="theme-color" content="#B3122B">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>VELVET FRUt · Pedidos</title>
+
+<meta name="theme-color" content="#24322a">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VelvetFrut">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+
+<style>
+  :root { --ink:#24322a; --cream:#fffaf0; --paper:#fffdf8; --orange:#db5d32; --sage:#d9e6d5; --line:#eadfce; --muted:#758175; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"DM Sans",sans-serif; color:var(--ink); background:var(--cream); }
+  .brand-font { font-family:"Fraunces",serif; }
+  .hero-photo { filter:saturate(.9) contrast(1.04); }
+  .hero-shade { background:linear-gradient(90deg,rgba(36,50,42,.94),rgba(36,50,42,.58),rgba(36,50,42,.12)); }
+  .choice-card { border:1.5px solid var(--line); transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease; cursor:pointer; }
+  .choice-card:hover { transform:translateY(-2px); border-color:var(--orange); }
+  .choice-card.is-selected { border-color:var(--ink); box-shadow:0 10px 24px rgba(36,50,42,.1); }
+  .choice-card.is-selected[data-color="cherry"] { background:#dc143c; }
+  .choice-card.is-selected[data-color="amber"] { background:#facc15; }
+  .choice-card.is-selected[data-color="leaf"] { background:#22c55e; }
+  .choice-card.is-selected .choice-card__title,
+  .choice-card.is-selected .choice-card__price,
+  .choice-card.is-selected .choice-card__tagline { color:#fff !important; }
+  .choice-dot { width:18px; height:18px; border:2px solid var(--muted); border-radius:999px; display:grid; place-items:center; flex-shrink:0; }
+  .choice-card.is-selected .choice-dot { border-color:#fff; }
+  .choice-card.is-selected .choice-dot::after { content:""; width:8px; height:8px; border-radius:999px; background:#fff; }
+  .topping-option { border:1px solid var(--line); transition:.18s ease; cursor:pointer; }
+  .topping-option.is-checked { border-color:var(--orange); background:#fff4ed; }
+  .topping-option input { accent-color:var(--orange); }
+  .summary-card { box-shadow:0 18px 38px rgba(67,47,29,.08); }
+  .panel-enter { animation:rise .35s ease both; }
+  @keyframes rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  .focusable:focus-visible { outline:3px solid rgba(219,93,50,.45); outline-offset:3px; }
+  .install-btn { flex-shrink:0; border:1px solid var(--line); background:var(--paper); color:var(--orange); font-size:12.5px; font-weight:700; padding:8px 12px; border-radius:999px; cursor:pointer; }
+  .install-btn[hidden] { display:none; }
+  .fab-whatsapp { position:fixed; right:16px; bottom:max(20px, env(safe-area-inset-bottom)); z-index:40; width:56px; height:56px; border-radius:50%; background:#25D366; color:#fff; border:none; font-size:26px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.25); }
+</style>
 </head>
 <body>
+<div class="app-shell pb-10">
 
-<header class="topbar">
-  <div class="topbar__inner">
-    <div class="topbar__brand">
-      <img src="icons/icon-192.png" alt="" class="topbar__logo">
-      <div>
-        <p class="topbar__title">VelvetFrut</p>
-        <p class="topbar__subtitle">Arma tu pedido y lo recibimos al instante</p>
+  <header class="w-full border-b border-[#eadfce] bg-[#fffdf8]/95 backdrop-blur">
+    <div class="w-full max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3">
+      <div class="w-11 h-11 rounded-full bg-[#24322a] text-white grid place-items-center" aria-hidden="true">
+        <i data-lucide="cherry" class="w-5 h-5"></i>
       </div>
+      <div class="flex-1">
+        <p class="text-xs uppercase tracking-[.17em] font-bold" style="color:#758175;">vaso para disfrutar</p>
+        <h1 class="brand-font leading-tight" style="color:#d2143a; font-weight:700; font-size:32px;">VELVET FRUt</h1>
+      </div>
+      <button class="install-btn" id="installBtn" hidden>📲 Instalar</button>
     </div>
-    <button class="install-btn" id="installBtn" hidden>📲 Instalar</button>
-  </div>
-</header>
+  </header>
 
-<main class="app">
+  <main class="w-full max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-9">
 
-  <!-- ===== PASO 1: DATOS ===== -->
-  <section class="panel">
-    <label class="field">
-      <span class="field__label">Tu nombre</span>
-      <input type="text" id="inputNombre" placeholder="¿Cómo te llamas?" autocomplete="off">
-    </label>
+    <section class="relative min-h-[250px] overflow-hidden rounded-[30px] mb-7" style="background:#24322a;">
+      <img class="hero-photo absolute inset-0 w-full h-full object-cover" loading="lazy"
+           src="https://images.pexels.com/photos/1099680/pexels-photo-1099680.jpeg?auto=compress&cs=tinysrgb&w=1280"
+           alt="Un vibrante smoothie bowl saludable cubierto con frutos rojos, mango y almendras.">
+      <div class="hero-shade absolute inset-0"></div>
+      <div class="relative z-10 max-w-xl p-7 sm:p-10 text-white">
+        <p class="text-sm uppercase tracking-[.16em] font-bold mb-3" style="color:#d9e6d5;">Tu antojo, a tu manera</p>
+        <h2 class="brand-font mb-3" style="font-size:24px;">Un vaso hecho para ti.</h2>
+        <p class="leading-relaxed" style="color:#f5efe4; font-size:16px;">Elige tu favorito, agrega tus toppings y deja listo tu pedido en menos de un minuto.</p>
+      </div>
+    </section>
 
-    <label class="field">
-      <span class="field__label">¿Para qué día lo quieres?</span>
-      <select id="inputFecha" class="field__select"></select>
-    </label>
-  </section>
+    <div class="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-7 items-start">
 
-  <!-- ===== PASO 2: MENÚ ===== -->
-  <section class="panel">
-    <p class="section-label">Elige tu producto</p>
-    <div id="menuGrid" class="menu-grid"></div>
-  </section>
+      <section aria-labelledby="order-title">
+        <div class="mb-6">
+          <p class="text-xs uppercase tracking-[.16em] font-bold mb-1" style="color:#db5d32;">Paso a paso</p>
+          <h2 id="order-title" class="brand-font" style="color:#24322a; font-size:24px;">Arma tu pedido</h2>
+        </div>
 
-  <!-- ===== PASO 3: MI PEDIDO ===== -->
-  <section class="panel">
-    <p class="section-label" id="pedidoItemsLabel" hidden>Mi pedido (<span id="pedidoItemsCount">0</span>)</p>
-    <div class="pedido-items" id="pedidoItems"></div>
-    <p class="empty-hint" id="pedidoItemsEmpty">Aún no agregas ningún producto. Elige uno arriba para empezar.</p>
+        <form id="order-form" novalidate>
 
-    <div class="modal__total" id="totalWrap" hidden>
-      <span>Total</span>
-      <span id="modalTotal">$0.00</span>
+          <section class="bg-[#fffdf8] rounded-[24px] p-5 sm:p-6 border border-[#eadfce] mb-5">
+            <label class="block font-bold mb-2" for="customer-name" style="color:#24322a; font-size:16px;">¿A nombre de quién va el pedido?</label>
+            <input id="customer-name" type="text" required autocomplete="name"
+                   class="focusable w-full rounded-xl border border-[#eadfce] bg-white px-4 py-3.5 outline-none mb-4"
+                   placeholder="Escribe tu nombre" style="font-size:16px;">
+
+            <label class="block font-bold mb-2" for="customer-date" style="color:#24322a; font-size:16px;">¿Para qué día lo quieres?</label>
+            <select id="customer-date" required class="focusable w-full rounded-xl border border-[#eadfce] bg-white px-4 py-3.5 outline-none" style="font-size:16px;"></select>
+          </section>
+
+          <fieldset class="mb-5">
+            <legend class="font-bold mb-3" style="color:#24322a; font-size:16px;">1. Elige tu bowl</legend>
+            <div class="grid sm:grid-cols-3 gap-3" id="choiceGrid"></div>
+          </fieldset>
+
+          <div id="toppingPanels"></div>
+
+          <p id="form-message" class="hidden mt-4 rounded-xl px-4 py-3 text-sm font-semibold" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <aside class="summary-card lg:sticky lg:top-6 rounded-[26px] p-5 sm:p-6" aria-label="Resumen del pedido" style="background:#fffdf8;">
+        <div class="flex items-center justify-between border-b border-[#eadfce] pb-4 mb-4">
+          <div>
+            <p class="text-xs uppercase tracking-[.14em] font-bold" style="color:#db5d32;">Casi listo</p>
+            <h2 class="brand-font" style="color:#24322a; font-size:24px;">Tu pedido</h2>
+          </div>
+          <i data-lucide="receipt-text" class="w-6 h-6" style="color:#db5d32;" aria-hidden="true"></i>
+        </div>
+        <dl class="space-y-4">
+          <div>
+            <dt class="text-xs uppercase tracking-[.1em] font-bold" style="color:#758175;">Cliente</dt>
+            <dd id="summary-customer" class="mt-1 font-semibold">—</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-[.1em] font-bold" style="color:#758175;">Producto</dt>
+            <dd id="summary-product" class="mt-1 font-semibold">—</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-[.1em] font-bold" style="color:#758175;">Topping gratis</dt>
+            <dd id="summary-free" class="mt-1 font-semibold">—</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-[.1em] font-bold" style="color:#758175;">Extras</dt>
+            <dd id="summary-extras" class="mt-1 text-sm">—</dd>
+          </div>
+        </dl>
+        <div class="mt-5 pt-4 border-t border-[#eadfce] flex justify-between items-end">
+          <span class="font-bold" style="color:#24322a; font-size:16px;">Total</span>
+          <output id="summary-total" class="brand-font text-2xl font-bold">$0.00</output>
+        </div>
+        <button id="submit-order" form="order-form" type="submit"
+                class="focusable w-full rounded-xl py-4 mt-5 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                style="background:#24322a; color:#fff; font-size:16px;">Enviar pedido</button>
+        <p class="text-xs text-center mt-3" style="color:#758175;">Revisa tus elecciones antes de enviar.</p>
+
+        <div id="success-panel" class="hidden panel-enter mt-5 rounded-2xl p-4 text-center" style="background:#d9e6d5;" aria-live="polite">
+          <i data-lucide="circle-check-big" class="w-8 h-8 mx-auto mb-2" style="color:#24322a;" aria-hidden="true"></i>
+          <p class="font-bold" style="color:#24322a; font-size:16px;">¡Pedido enviado!</p>
+          <p class="text-sm mt-1" style="color:#24322a;">Gracias. Te escribimos por WhatsApp para confirmar.</p>
+        </div>
+      </aside>
+
     </div>
-
-    <button class="btn btn--primary btn--enviar" id="btnEnviar">Enviar pedido</button>
-    <p class="field__hint" id="enviarHint" style="text-align:center;margin-top:8px;"></p>
-  </section>
-
-</main>
-
-<!-- ===== CONSTRUCTOR DE TOPPINGS (aparece al elegir un producto) ===== -->
-<div class="modal" id="modalTopping" hidden>
-  <div class="modal__sheet">
-    <div class="modal__handle"></div>
-    <h2 class="modal__title" id="toppingTitle">Personaliza tu pedido</h2>
-    <p class="topping-desc" id="toppingDesc"></p>
-    <div id="toppingBuilderGratis"></div>
-    <div id="toppingBuilderPago"></div>
-    <div class="modal__actions">
-      <button class="btn btn--ghost" id="btnCancelarTopping">Cancelar</button>
-      <button class="btn btn--primary" id="btnAddPedidoItem">+ Añadir al pedido</button>
-    </div>
-  </div>
+  </main>
 </div>
 
-<!-- ===== CONFIRMACIÓN ===== -->
-<div class="modal" id="modalOk" hidden>
-  <div class="modal__sheet modal__sheet--center">
-    <p class="modal__ok-emoji">🍓</p>
-    <h2 class="modal__title" style="text-align:center;">¡Tu pedido ya llegó a VelvetFrut!</h2>
-    <p class="field__hint" style="text-align:center;font-size:13.5px;">Te confirmamos por WhatsApp si tienes alguna duda. ¡Gracias por tu pedido!</p>
-    <button class="btn btn--primary" id="btnOkCerrar">Listo</button>
-  </div>
-</div>
-
-<button class="fab fab--whatsapp" id="fabWhatsapp" aria-label="WhatsApp">💬</button>
+<button class="fab-whatsapp" id="fabWhatsapp" aria-label="WhatsApp">💬</button>
 
 <script src="https://www.gstatic.com/firebasejs/12.12.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore-compat.js"></script>
