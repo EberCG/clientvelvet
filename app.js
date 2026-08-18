@@ -1,10 +1,10 @@
 /* ============ MENÚ (precios y toppings reales de VelvetFrut) ============ */
 const MENU = [
   {
-    key: "frutosRojos", nombre: "Frutos Rojos", precio: 45, color: "cherry",
+    key: "frutosRojos", nombre: "Frutos Rojos", precio: 55, color: "cherry",
     tagline: "Brillante, frutal y delicioso.",
     img: "img/frutos-rojos.jpg",
-    gratis: ["Miel de abeja", "Jalea de fresa"],
+    gratis: ["Miel de abeja", "Mermelada de fresa"],
     pagoPrecio: 5,
     pago: ["Nutella", "Oreo triturada", "Chispas de chocolate"],
   },
@@ -12,7 +12,7 @@ const MENU = [
     key: "huertoDulce", nombre: "Huerto Dulce", precio: 45, color: "amber",
     tagline: "Un toque suave y acogedor.",
     img: "img/huerto-dulce.jpg",
-    gratis: ["Miel de abeja", "Jalea de durazno"],
+    gratis: ["Miel de abeja", "Mermelada de durazno"],
     pagoPrecio: 5,
     pago: ["Nutella", "Canelitas trituradas", "Chispas de chocolate"],
   },
